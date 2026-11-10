@@ -21,8 +21,7 @@ import {
   Globe,
   Edit3,
   X,
-  Zap,
-  Filter
+  Zap
 } from 'lucide-react';
 
 // Platform Brand Icons

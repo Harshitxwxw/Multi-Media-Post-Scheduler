@@ -20,3 +20,10 @@ export interface CreatePostDto {
   scheduledFor: string;
 }
 
+export interface UpdatePostDto {
+  content?: string;
+  mediaUrls?: string[];
+  platforms?: Platform[];
+  scheduledFor?: string;
+  status?: PostStatus;
+}

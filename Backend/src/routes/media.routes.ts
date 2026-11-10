@@ -72,3 +72,4 @@ router.post('/upload', upload.array('files', 10), (req: Request, res: Response):
 });
 
 export default router;
+

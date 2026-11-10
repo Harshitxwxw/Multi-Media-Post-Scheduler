@@ -19,3 +19,4 @@ export interface CreatePostDto {
   platforms: Platform[];
   scheduledFor: string;
 }
+

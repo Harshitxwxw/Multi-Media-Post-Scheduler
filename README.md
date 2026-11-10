@@ -76,3 +76,4 @@ npm run dev
   - `POST /api/posts`: Schedule a new post
   - `DELETE /api/posts/:id`: Remove a post
   - `POST /api/media/upload`: Upload images and videos
+

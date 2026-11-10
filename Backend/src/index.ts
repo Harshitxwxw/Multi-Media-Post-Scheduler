@@ -11,21 +11,30 @@ dotenv.config();
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+const CLIENT_URL =
+  process.env.CLIENT_URL ||
+  'https://multi-media-post-scheduler-1.onrender.com,http://localhost:5173';
 
 // Middleware: Support single or comma-separated origins, localhost, or wildcard
+const allowedOrigins = [
+  'https://multi-media-post-scheduler-1.onrender.com',
+  'http://localhost:5173',
+  ...CLIENT_URL.split(',').map((url) => url.trim()),
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       if (
         CLIENT_URL === '*' ||
-        CLIENT_URL.split(',').map((url) => url.trim()).includes(origin) ||
-        origin.includes('localhost')
+        allowedOrigins.includes(origin) ||
+        origin.includes('localhost') ||
+        origin.endsWith('.onrender.com')
       ) {
         return callback(null, true);
       }
-      return callback(null, true); // Allow during initial setup so requests aren't blocked
+      return callback(null, true);
     },
     credentials: true,
   })

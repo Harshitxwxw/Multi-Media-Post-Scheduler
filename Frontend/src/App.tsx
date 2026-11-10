@@ -76,6 +76,18 @@ const PLATFORMS = [
   { id: 'youtube', name: 'YouTube', icon: YoutubeIcon, limit: 10000, color: 'text-red-400 bg-red-950/40 border-red-800' },
 ];
 
+const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '' : 'https://multi-media-post-scheduler.onrender.com')
+).replace(/\/$/, '');
+
+const getMediaUrl = (url: string) => {
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) {
+    return url;
+  }
+  return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function App() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -108,7 +120,7 @@ export default function App() {
   // Check backend health
   const checkHealth = async () => {
     try {
-      const res = await fetch('/api/health');
+      const res = await fetch(`${API_BASE}/api/health`);
       if (res.ok) {
         setBackendStatus('connected');
         fetchPosts();
@@ -123,7 +135,7 @@ export default function App() {
   // Fetch posts from backend
   const fetchPosts = async () => {
     try {
-      const res = await fetch('/api/posts');
+      const res = await fetch(`${API_BASE}/api/posts`);
       if (res.ok) {
         const json = await res.json();
         if (json.data) setPosts(json.data);
@@ -161,7 +173,7 @@ export default function App() {
     });
 
     try {
-      const res = await fetch('/api/media/upload', {
+      const res = await fetch(`${API_BASE}/api/media/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -208,13 +220,13 @@ export default function App() {
     try {
       let res: Response;
       if (editingPostId) {
-        res = await fetch(`/api/posts/${editingPostId}`, {
+        res = await fetch(`${API_BASE}/api/posts/${editingPostId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch('/api/posts', {
+        res = await fetch(`${API_BASE}/api/posts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -290,7 +302,7 @@ export default function App() {
 
   const handlePublishNow = async (id: string) => {
     try {
-      const res = await fetch(`/api/posts/${id}/publish`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/posts/${id}/publish`, { method: 'POST' });
       if (res.ok) {
         const json = await res.json();
         setPosts(posts.map((p) => (p.id === id ? json.data : p)));
@@ -310,7 +322,7 @@ export default function App() {
 
   const handleDeletePost = async (id: string) => {
     try {
-      await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/posts/${id}`, { method: 'DELETE' });
     } catch {
       // ignore
     }
@@ -475,7 +487,7 @@ export default function App() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
                   {mediaUrls.map((url, idx) => (
                     <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-800 bg-slate-950 aspect-video flex items-center justify-center">
-                      <img src={url} alt="upload" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(url)} alt="upload" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removeMedia(idx)}
@@ -650,7 +662,7 @@ export default function App() {
                           {post.mediaUrls.map((url, i) => (
                             <img
                               key={i}
-                              src={url}
+                              src={getMediaUrl(url)}
                               alt="media"
                               className="w-12 h-12 object-cover rounded-lg border border-slate-800 bg-slate-950"
                             />
@@ -767,7 +779,7 @@ export default function App() {
 
                   {mediaUrls.length > 0 && (
                     <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-900">
-                      <img src={mediaUrls[0]} alt="preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(mediaUrls[0])} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
 
@@ -804,7 +816,7 @@ export default function App() {
 
                   {mediaUrls.length > 0 && (
                     <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-900">
-                      <img src={mediaUrls[0]} alt="preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(mediaUrls[0])} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
 
@@ -834,7 +846,7 @@ export default function App() {
 
                   <div className="rounded-xl overflow-hidden border border-slate-800 aspect-square bg-slate-900 flex items-center justify-center">
                     {mediaUrls.length > 0 ? (
-                      <img src={mediaUrls[0]} alt="preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(mediaUrls[0])} alt="preview" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center p-4 text-slate-500 text-xs">
                         <UploadCloud className="w-8 h-8 mx-auto mb-2 text-slate-600" />
@@ -883,7 +895,7 @@ export default function App() {
 
                   {mediaUrls.length > 0 && (
                     <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-900">
-                      <img src={mediaUrls[0]} alt="preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(mediaUrls[0])} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
 
@@ -917,7 +929,7 @@ export default function App() {
 
                   {mediaUrls.length > 0 && (
                     <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-900">
-                      <img src={mediaUrls[0]} alt="preview" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(mediaUrls[0])} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
 

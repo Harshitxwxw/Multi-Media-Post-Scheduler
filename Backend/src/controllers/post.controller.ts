@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { schedulerService } from '../services/scheduler.service.js';
-import { CreatePostDto, Platform } from '../types/index.js';
+import { CreatePostDto, UpdatePostDto, Platform } from '../types/index.js';
 
 export const getPosts = (_req: Request, res: Response) => {
   try {
@@ -41,6 +41,46 @@ export const createPost = (req: Request, res: Response): void => {
     res.status(201).json({ success: true, data: newPost });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to create post', error });
+  }
+};
+
+export const updatePost = (req: Request, res: Response): void => {
+  try {
+    const id = req.params.id as string;
+    const { content, mediaUrls, platforms, scheduledFor, status } = req.body;
+
+    const updates: UpdatePostDto = {};
+    if (content !== undefined) updates.content = content;
+    if (mediaUrls !== undefined) updates.mediaUrls = mediaUrls;
+    if (platforms !== undefined) updates.platforms = platforms;
+    if (scheduledFor !== undefined) updates.scheduledFor = scheduledFor;
+    if (status !== undefined) updates.status = status;
+
+    const updated = schedulerService.updatePost(id, updates);
+    if (!updated) {
+      res.status(404).json({ success: false, message: 'Post not found' });
+      return;
+    }
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to update post', error });
+  }
+};
+
+export const publishPost = (req: Request, res: Response): void => {
+  try {
+    const id = req.params.id as string;
+    const published = schedulerService.publishNow(id);
+
+    if (!published) {
+      res.status(404).json({ success: false, message: 'Post not found' });
+      return;
+    }
+
+    res.json({ success: true, message: 'Post published successfully', data: published });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to publish post', error });
   }
 };
 

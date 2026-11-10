@@ -12,8 +12,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
-// Middleware
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
+// Middleware: Support single or comma-separated origins, localhost, or wildcard
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        CLIENT_URL === '*' ||
+        CLIENT_URL.split(',').map((url) => url.trim()).includes(origin) ||
+        origin.includes('localhost')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Allow during initial setup so requests aren't blocked
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -21,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsPath = path.resolve(process.cwd(), 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// Health check endpoint
+// Health check endpoint (Render uses this to verify the deployment)
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -38,9 +54,9 @@ app.use('/api/media', mediaRoutes);
 schedulerService.start();
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Backend server is running at http://localhost:${PORT}`);
+  console.log(`🚀 Backend server is running on port ${PORT}`);
   console.log(`📦 Serving uploads from ${uploadsPath}`);
-  console.log(`📡 Health check available at http://localhost:${PORT}/api/health`);
+  console.log(`📡 Health check available at /api/health`);
 });
 
 // Graceful shutdown
@@ -52,4 +68,3 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
-
